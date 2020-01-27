@@ -1,0 +1,9 @@
+resolver: lts-12.26
+
+packages:
+- .
+
+extra-deps:
+# works w lts-12:
+- monad-mock-0.1.0.0@sha256:f59a192d417c973267c36d9abf6014c6d18a75ca279f2ff6de7b419275bd1ce0
+- assumpta-core-0.1.0.1@sha256:4ff92130ae3a99ed34b8481328c9dff91d84c72ee3aaad91df5a41f3a0e40358
