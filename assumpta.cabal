@@ -1,0 +1,108 @@
+cabal-version: 1.12
+
+name:           assumpta
+version:        0.1.0.0
+synopsis:       An SMTP client library
+description:    An SMTP client library,
+                which allows you to send email via
+                an SMTP server.
+                .
+                For further details, please see the README on GitHub at
+                <https://github.com/phlummox/assumpta#readme>.
+category:       Network
+homepage:       https://github.com/phlummox/assumpta#readme
+bug-reports:    https://github.com/phlummox/assumpta/issues
+author:         phlummox
+maintainer:     phlummox2@gmail.com
+copyright:      2020 phlummox
+license:        BSD2
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/phlummox/assumpta
+
+-- This enables (or disables) the `compile-examples` test
+-- suite, which just checks that the files in the `examples` folder
+-- can be compiled. The test driver is set up to complain and fail if
+-- it is not being run with `stack`.
+-- You can enable these tests from stack using 
+-- `--flag assumpta:test-compile-examples`.
+flag test-compile-examples
+  description: enable test-compilation of examples
+  manual: True
+  default: False
+
+flag warnmore
+  description: Enable plenty of ghc warning flags
+  manual: True
+  default: True
+
+library
+  exposed-modules:
+      Network.Mail.Assumpta.Net
+      Network.Mail.Assumpta.ByteString
+      Network.Mail.Assumpta.Text
+      Network.Mail.Assumpta.String
+--      Network.Mail.Assumpta
+--  other-modules:
+--      Mocker
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.0 && <5
+    , assumpta-core == 0.1.0.1
+    , bytestring
+    , exceptions
+    , mtl
+    , text
+    , connection
+    , data-default
+    , mime-mail
+    -- , monad-mock <0.1.1.0
+    -- , monad-mock <0.1.1.1
+  if flag(warnmore)
+    if impl(ghc >= 8.0.1)
+      ghc-options:
+        -Wall -Wcompat -Wincomplete-record-updates
+        -Wincomplete-uni-patterns -Wredundant-constraints
+        -Wno-name-shadowing -Wno-orphans -fwarn-tabs
+    else
+      ghc-options:
+        -Wall
+  default-language: Haskell2010
+
+-- **
+-- - Only works with stack
+-- - requires STACK_RESOLVER env var to be set
+test-suite compile-examples
+  type: exitcode-stdio-1.0
+  main-is: compile-examples.hs
+  hs-source-dirs:
+      test-other
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  if !(flag(test-compile-examples))
+    buildable: False
+  else
+    build-depends:
+        assumpta
+      , assumpta-core
+      , base >=4.0 && <5
+      , filepath
+      , shelly
+      , text
+  if flag(warnmore)
+    if impl(ghc >= 8.0.1)
+      ghc-options:
+        -Wall -Wcompat -Wincomplete-record-updates
+        -Wincomplete-uni-patterns -Wredundant-constraints
+        -Wno-name-shadowing -Wno-orphans -fwarn-tabs
+    else
+      ghc-options:
+        -Wall
+  default-language: Haskell2010
+
