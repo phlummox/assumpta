@@ -31,6 +31,9 @@ import Network.Mail.Assumpta.ByteString
 deriving instance Eq ReplyLine
 deriving instance Eq SmtpError
 
+-- .. probably shouldn't churn through *quite* so many sockets
+-- so fast - but I haven't run out, so a pool doesn't seem
+-- necessary yet.
 mkServerSoc :: IO (N.Socket, N.PortNumber)
 mkServerSoc = do
     -- wildcard port
@@ -48,6 +51,10 @@ mkServerSoc = do
 -- commands to it, return result, plus requests received
 -- by server. @replies@ are the canned responses
 -- the server is to make.
+--
+-- The client needs to 'expect' something to start
+-- with (i.e. the server goes first), else
+-- things are likely to get out of sync.
 runSmtpWithServer ::
   Smtp a -> [ByteString] -> IO (Either SmtpError a, ByteString)
 runSmtpWithServer commands replies = do
@@ -131,14 +138,16 @@ data_Spec =
     it "should pass on its content unchanged" $ property $
       \(NonEmpty someData) -> ioProperty $ do
           let someData' = BSC.pack someData 
-              cmds = data_ someData' -- <> crlf
+              cmds = do expectGreeting
+                        data_ $ someData' <> crlf
               serverReplies = [
-                  "354 End data with <CR><LF>.<CR><LF>"
+                  "220 hi there"
+                , "354 End data with <CR><LF>.<CR><LF>"
                 , "250 OK"
                 ]
           res <- runSmtpWithServer cmds serverReplies
           return $ propertyIO $ 
-              res `shouldBe` (Right (), "DATA\r\n" <> someData')
+              res `shouldBe` (Right (), "DATA\r\n" <> someData' <> "\r\n")
 
 
 -- `main` is here so that this module can be run from GHCi on its own.  It is
