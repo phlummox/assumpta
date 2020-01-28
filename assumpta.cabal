@@ -57,12 +57,13 @@ library
       base >=4.0 && <5
     , assumpta-core == 0.1.*
     , bytestring
-    , exceptions
-    , mtl
-    , text
     , connection
     , data-default
+    , exceptions
     , mime-mail
+    , mtl
+    , text
+    , transformers
     -- , monad-mock <0.1.1.0
     -- , monad-mock <0.1.1.1
   if flag(warnmore)
@@ -121,7 +122,7 @@ test-suite hspec-tests
     , assumpta-core
     , bytestring
     , hspec
-    , network
+    , network < 3
     , quickcheck-io
   if flag(warnmore)
     if impl(ghc >= 8.0.1)
