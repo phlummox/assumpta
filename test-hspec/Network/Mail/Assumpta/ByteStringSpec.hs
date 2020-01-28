@@ -119,17 +119,6 @@ smtpTestCases = [
             -- expect
             (Left (UnexpectedResponse "220" [ReplyLine 250 "OK"]), "")
 
-  , mkSmtpTestCase
-            "client didn't wait for greeting"
-            -- cmds 
-            (helo "myhost")
-            -- responses
-            [ "220 hi there"
-            , "250 OK"
-            ]
-            -- expect
-            (Left (UnexpectedResponse "250" [ReplyLine 220 "hi there"]),
-            "HELO myhost\r\n")
   ]
 
 data_Spec :: SpecWith ()
