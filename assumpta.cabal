@@ -55,7 +55,7 @@ library
       src
   build-depends:
       base >=4.0 && <5
-    , assumpta-core == 0.1.0.1
+    , assumpta-core == 0.1.*
     , bytestring
     , exceptions
     , mtl
@@ -106,3 +106,30 @@ test-suite compile-examples
         -Wall
   default-language: Haskell2010
 
+test-suite hspec-tests
+  type: exitcode-stdio-1.0
+  main-is: hspec-tests.hs
+  other-modules:
+      Network.Mail.Assumpta.ByteStringSpec
+  hs-source-dirs:
+      test-hspec
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      QuickCheck
+    , assumpta
+    , base >=4.0 && <5
+    , assumpta-core
+    , bytestring
+    , hspec
+    , network
+    , quickcheck-io
+  if flag(warnmore)
+    if impl(ghc >= 8.0.1)
+      ghc-options:
+        -Wall -Wcompat -Wincomplete-record-updates
+        -Wincomplete-uni-patterns -Wredundant-constraints
+        -Wno-name-shadowing -Wno-orphans -fwarn-tabs
+    else
+      ghc-options:
+        -Wall
+  default-language: Haskell2010
