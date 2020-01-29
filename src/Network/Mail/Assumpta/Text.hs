@@ -49,6 +49,7 @@ module Network.Mail.Assumpta.Text
   , vrfy
   , help
   , sendRawMail
+  , simpleMail
     -- * Server responses
   , ABS.expect
   , ABS.expectGreeting
@@ -90,11 +91,15 @@ module Network.Mail.Assumpta.Text
   )
   where
 
+import           Data.ByteString.Lazy (toStrict)
 import           Data.Foldable (toList)
 import           Data.Monoid -- needed for early versions of Base
 import qualified Data.Text as T
 import           Data.Text ( Text )
-import qualified Data.Text.Encoding as TE
+import           Data.Text.Encoding ( encodeUtf8, decodeUtf8 )
+import           Data.Text.Lazy (fromStrict)
+import qualified Network.Mail.Mime as MM ( Address(..), simpleMail
+                                         , renderMail' )
 
 import qualified Network.Mail.Assumpta.ByteString as ABS
 
@@ -103,44 +108,44 @@ import qualified Network.Mail.Assumpta.MonadSmtp as M
 
 -- | See 'M.helo'
 helo :: MonadSmtp m => Text -> m () 
-helo =  M.helo . TE.encodeUtf8
+helo =  M.helo . encodeUtf8
 
 -- | See 'M.ehlo'
 ehlo :: MonadSmtp m => Text -> m () 
-ehlo =  M.ehlo . TE.encodeUtf8
+ehlo =  M.ehlo . encodeUtf8
 
 -- | See 'M.mailFrom'
 mailFrom :: MonadSmtp m => Text -> m ()
-mailFrom =  M.mailFrom . TE.encodeUtf8
+mailFrom =  M.mailFrom . encodeUtf8
 
 -- | See 'M.rcptTo'
 rcptTo :: MonadSmtp m => Text -> m ()
-rcptTo =  M.rcptTo . TE.encodeUtf8
+rcptTo =  M.rcptTo . encodeUtf8
 
 -- | See 'M.data_'
 data_ :: MonadSmtp m => Text -> m ()
-data_ =  M.data_ . TE.encodeUtf8
+data_ =  M.data_ . encodeUtf8
 
 -- | See 'M.expn'
 expn :: MonadSmtp m => Text -> m M.Reply
-expn =  M.expn . TE.encodeUtf8
+expn =  M.expn . encodeUtf8
 
 -- | See 'M.vrfy'
 vrfy :: MonadSmtp m => Text -> m M.Reply
-vrfy =  M.vrfy . TE.encodeUtf8
+vrfy =  M.vrfy . encodeUtf8
 
 -- | See 'M.help'
 help :: MonadSmtp m => Maybe Text -> m M.Reply
-help = M.help . fmap TE.encodeUtf8
+help = M.help . fmap encodeUtf8
 
 
 -- | See 'M.send'
 send :: MonadSmtp m => Text -> m ()
-send =  M.send . TE.encodeUtf8
+send =  M.send . encodeUtf8
 
 -- | See 'M.sendLine'
 sendLine :: MonadSmtp m => Text -> m ()
-sendLine =  M.sendLine . TE.encodeUtf8
+sendLine =  M.sendLine . encodeUtf8
 
 -- | replace newlines (@\'\\n'@) with crlf sequence (@\'\\r\\n'@).
 toCrLf :: Text -> Text
@@ -161,8 +166,71 @@ escapePeriods txt =
 sendRawMail ::
   (MonadSmtp m, Foldable t) => Text -> t Text -> Text -> m ()
 sendRawMail sender recipients message =
-  let sender' = TE.encodeUtf8 sender
-      recipients' = map TE.encodeUtf8 (toList recipients)
-      message'    = TE.encodeUtf8 message
+  let sender' = encodeUtf8 sender
+      recipients' = map encodeUtf8 (toList recipients)
+      message'    = encodeUtf8 message
   in  ABS.sendRawMail sender' recipients' message'
+
+
+-- | A simple interface for generating an email with HTML and plain-text
+-- alternatives and some file attachments and sending it via an
+-- SMTP server.
+--
+-- Uses lazy IO for reading in the attachment contents. Simple wrapper
+-- around 'MM.renderMail''. /Caution/: Not tested, use with care.
+-- Likely to change.
+--
+-- sample use:
+--
+-- @ 
+-- > import qualified Network.Mail.Mime as MM
+-- > :set -XOverloadedStrings
+-- > :{
+--   let addr =  MM.Address (Just "joe") "joe@nowhere"
+--       subj = "a test subject"
+--       body = "a test body"
+-- > :}
+-- > simpleMail addr addr subj body "" [] "myserver.mydomain.com" "mail.yourserver.org" 2025
+-- @
+{-# WARNING simpleMail "experimental, likely to change" #-}
+simpleMail :: MM.Address -- ^ to
+           -> MM.Address -- ^ from
+           -> T.Text -- ^ subject
+           -> T.Text -- ^ plain body
+           -> T.Text -- ^ HTML body
+           -> [(T.Text, FilePath)] -- ^ content type and path of attachments
+           -> String  -- ^ qualified name of local host
+           -> String  -- ^ SMTP server to connect to
+           -> Int -- ^ Port of SMTP server
+           -> IO (T.Text, Either M.SmtpError ())
+simpleMail to from subject plainBody htmlBody attachments localHost server port =
+  do
+    let plainBody' = fromStrict plainBody
+        htmlBody'  = fromStrict htmlBody
+    mail <- escape . toStrict <$> (MM.renderMail' =<< 
+              MM.simpleMail to from subject plainBody' htmlBody' attachments)
+    let mail' = if crlf `T.isSuffixOf` mail
+                then mail <> "." <> crlf 
+                else mail <> crlf <> "." <> crlf
+        to'   = MM.addressEmail to
+        from' = MM.addressEmail from
+    res <- ABS.runSmtp server port $ do
+      ABS.expectGreeting
+      ehlo $ T.pack localHost
+      sendRawMail from' [to'] mail'
+      ABS.quit
+    return (mail, res)
+  where
+    escape = escapePeriods . toCrLf . decodeUtf8 
+    crlf   = ABS.crlf
+
+----testX :: IO (Either SmtpError ())
+--testX =
+--  let addr =  MM.Address (Just "joe") "joe@place"
+--      subj = "a test subj"
+--      body = "a test body"
+--  in  simpleMail addr addr subj body "" [] "myserver.lan" "localhost" 2025
+
+
+
 

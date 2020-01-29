@@ -21,6 +21,12 @@ build-type:     Simple
 extra-source-files:
     README.md
     ChangeLog.md
+    CONTRIBUTE.md
+    DEVELOPMENT.md
+    TODO.md
+    examples/simple-client-session-bs.hs
+    scripts/stack-test.sh
+    stack-lts-12.26.yaml
 
 source-repository head
   type: git
@@ -44,7 +50,7 @@ flag warnmore
 
 library
   exposed-modules:
-      Network.Mail.Assumpta.Net
+      Network.Mail.Assumpta.Internal.Net
       Network.Mail.Assumpta.ByteString
       Network.Mail.Assumpta.Text
       Network.Mail.Assumpta.String

@@ -10,7 +10,7 @@ package.
 
 -}
 
-module Network.Mail.Assumpta.Net
+module Network.Mail.Assumpta.Internal.Net
 
   where
 

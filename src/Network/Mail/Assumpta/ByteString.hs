@@ -149,7 +149,6 @@ module Network.Mail.Assumpta.ByteString
     -- using the
     -- <https://hackage.haskell.org/package/connection connection>
     -- package.
-    -- Re-exported from "Network.Mail.Assumpta.Net".
   , open
   , openTls
   , openParams
@@ -173,7 +172,7 @@ import           Control.Monad.Catch (MonadMask)
 import           Control.Monad.Except
 import qualified Network.Connection as C
 
-import           Network.Mail.Assumpta.Net
+import           Network.Mail.Assumpta.Internal.Net
 import           Network.Mail.Assumpta.MonadSmtp as Smtp
 import qualified Network.Mail.Assumpta.Trans.Smtp as T
 import           Network.Mail.Assumpta.Trans.Smtp hiding ( SmtpT(..)

@@ -4,16 +4,10 @@ An SMTP client library. It provides functionality for sending SMTP
 commands (including `STARTTLS`) to a server and checking for expected
 responses. Also for just sending an email.
 
-## Installation
-
-`assumpta` can be installed in the standard way using `stack`
-or `cabal` (e.g. `stack install assumpta`).
-
 ## Usage
 
-See the `simple-client-session-text.hs` program in the 
-`examples` directory, or, say, the
-`Network.Mail.Assumpta.ByteString` module
- for a examples of usage.
+See the `simple-client-session-bs.hs` program in the `examples`
+directory, or the `Network.Mail.Assumpta.ByteString` module
+for examples of usage.
 
 

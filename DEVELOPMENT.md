@@ -8,7 +8,7 @@ CircleCI in general is much more irritating, doesn't natively support
 'test matrixes', and has obviously had less thought put into its design;
 but it's faster, seems to do a better job of cacheing build artifacts,
 and lets you use any Docker image you like to run tests in (unlike Travis CI,
-which only has a set number of support environments).
+which only has a fixed set of supported environments).
 
 If anyone wants to suggest things which might make the source tree
 more friendly to cabal-users, feel free to let me know.
