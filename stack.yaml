@@ -4,4 +4,4 @@ packages:
 - .
 
 extra-deps:
-- assumpta-core-0.1.0.1@sha256:4ff92130ae3a99ed34b8481328c9dff91d84c72ee3aaad91df5a41f3a0e40358
+- assumpta-core-0.1.0.2@sha256:256ef9a9450c40b0623cfe9f222b32733055a5aee4e4a6658d339aef14f9e3fc
