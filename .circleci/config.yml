@@ -23,8 +23,8 @@ jobs:
       - restore_cache:
           name: Restore cached dependencies
           keys:
-            - hs-cache-{{ checksum "assumpta.cabal" }}
-            - hs-cache-
+            - stack-build-cache-{{ checksum "assumpta.cabal" }}
+            - stack-build-cache-
       - run:
           name: Setup environment variables
           command: |
@@ -38,7 +38,7 @@ jobs:
             mkdir -p "$HOME/.local/bin"
             sudo apt-get update
             sudo apt-get -y install libgmp-dev libtinfo-dev
-            if [ ! -x /home/root/.local/bin/stack ] ; then
+            if [ ! -x /home/home/circleci/.local/bin/stack ] ; then
               curl -L "${LINUX64_STACK}" | tar xz --wildcards --strip-components=1 -C $HOME/.local/bin '*/stack'
             fi
             stack --version
@@ -50,21 +50,18 @@ jobs:
           command:  stack --resolver="${STACK_RESOLVER}" build
       - run:
           name:     run tests
-          command:  |
-            export STACK_RESOLVER="${STACK_RESOLVER}"
-            stack --resolver="${STACK_RESOLVER}" test \
-                --flag assumpta:test-compile-examples
+          command:  ./scripts/stack-test.sh "${STACK_RESOLVER}"
       - save_cache:
           name: Cache dependencies for stack generally
-          key: hs-cache-
+          key: stack-build-cache-
           paths:
-            - "/root/.stack"
-            - "/root/.ghc"
-            - "/root/.cabal"
-            - "/root/.local"
+            - "/home/circleci/.stack"
+            - "/home/circleci/.ghc"
+            - "/home/circleci/.cabal"
+            - "/home/circleci/.local"
       - save_cache:
           name: Cache dependencies for project
-          key: hs-cache-{{ checksum "assumpta.cabal" }}
+          key: stack-build-cache-{{ checksum "assumpta.cabal" }}
           paths:
             - ".stack-work"
 
@@ -83,8 +80,8 @@ jobs:
       - restore_cache:
           name: Restore cached dependencies
           keys:
-            - ghc-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "assumpta.cabal" }}
-            - ghc-cache-{{ .Environment.CIRCLE_JOB }}-
+            - ghc-build-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "assumpta.cabal" }}
+            - ghc-build-cache-{{ .Environment.CIRCLE_JOB }}-
       - run:
           name: Setup environment variables
           command: |
@@ -105,15 +102,15 @@ jobs:
             source ./.circleci/cabal-build.sh
       - save_cache:
           name: Cache dependencies for stack generally
-          key: ghc-cache-{{ .Environment.CIRCLE_JOB }}-
+          key: ghc-build-cache-{{ .Environment.CIRCLE_JOB }}-
           paths:
-            - "/root/.stack"
-            - "/root/.ghc"
-            - "/root/.cabal"
-            - "/root/.local"
+            - "/home/circleci/.stack"
+            - "/home/circleci/.ghc"
+            - "/home/circleci/.cabal"
+            - "/home/circleci/.local"
       - save_cache:
           name: Cache dependencies for project
-          key: ghc-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "assumpta.cabal" }}
+          key: ghc-build-cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "assumpta.cabal" }}
           paths:
             - "dist"
 
