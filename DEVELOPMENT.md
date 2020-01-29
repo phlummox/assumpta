@@ -22,13 +22,13 @@ programs in the `examples` directory can be compiled)
 requires stack to run, and will
 fail if a `STACK_RESOLVER` environment variable isn't found (or if
 it can't find `stack` on the `$PATH`). It also is normally disabled,
-unless the `test-compile-examples` flag is enabled.
+unless the `stack-based-tests` flag is enabled.
 
 So it is best run like this:
 
 ```bash
 $ export STACK_RESOLVER=lts-12.26
-$ stack --resolver="${STACK_RESOLVER}" test --flag assumpta:test-compile-examples
+$ stack --resolver="${STACK_RESOLVER}" test --flag assumpta:stack-based-tests
 ```
 
 The aim of the test is just to ensure that the examples

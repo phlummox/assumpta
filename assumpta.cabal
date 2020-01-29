@@ -25,6 +25,7 @@ extra-source-files:
     DEVELOPMENT.md
     TODO.md
     examples/simple-client-session-bs.hs
+    examples/simple-client-session-text.hs
     scripts/stack-test.sh
     stack-lts-12.26.yaml
 
@@ -32,14 +33,13 @@ source-repository head
   type: git
   location: https://github.com/phlummox/assumpta
 
--- This enables (or disables) the `compile-examples` test
--- suite, which just checks that the files in the `examples` folder
--- can be compiled. The test driver is set up to complain and fail if
--- it is not being run with `stack`.
--- You can enable these tests from stack using 
--- `--flag assumpta:test-compile-examples`.
-flag test-compile-examples
-  description: enable test-compilation of examples
+-- This enables (or disables) tests that rely on
+-- "stack": just the example compilation
+-- test, at the moment.
+-- You can enable these tests from stack using
+-- `--flag assumpta-core:stack-based-tests`
+flag stack-based-tests
+  description: enable tests requiring stack
   manual: True
   default: False
 
@@ -54,9 +54,6 @@ library
       Network.Mail.Assumpta.ByteString
       Network.Mail.Assumpta.Text
       Network.Mail.Assumpta.String
---      Network.Mail.Assumpta
---  other-modules:
---      Mocker
   hs-source-dirs:
       src
   build-depends:
@@ -70,8 +67,36 @@ library
     , mtl
     , text
     , transformers
-    -- , monad-mock <0.1.1.0
-    -- , monad-mock <0.1.1.1
+  if flag(warnmore)
+    if impl(ghc >= 8.0.1)
+      ghc-options:
+        -Wall -Wcompat -Wincomplete-record-updates
+        -Wincomplete-uni-patterns -Wredundant-constraints
+        -Wno-name-shadowing -Wno-orphans -fwarn-tabs
+    else
+      ghc-options:
+        -Wall
+  default-language: Haskell2010
+
+
+
+test-suite hspec-tests
+  type: exitcode-stdio-1.0
+  main-is: hspec-tests.hs
+  other-modules:
+      Network.Mail.Assumpta.ByteStringSpec
+  hs-source-dirs:
+      test-hspec
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      QuickCheck
+    , assumpta
+    , base >=4.0 && <5
+    , assumpta-core
+    , bytestring
+    , hspec
+    , network < 3
+    , quickcheck-io
   if flag(warnmore)
     if impl(ghc >= 8.0.1)
       ghc-options:
@@ -92,7 +117,7 @@ test-suite compile-examples
   hs-source-dirs:
       test-other
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
-  if !(flag(test-compile-examples))
+  if !(flag(stack-based-tests))
     buildable: False
   else
     build-depends:
@@ -102,34 +127,6 @@ test-suite compile-examples
       , filepath
       , shelly
       , text
-  if flag(warnmore)
-    if impl(ghc >= 8.0.1)
-      ghc-options:
-        -Wall -Wcompat -Wincomplete-record-updates
-        -Wincomplete-uni-patterns -Wredundant-constraints
-        -Wno-name-shadowing -Wno-orphans -fwarn-tabs
-    else
-      ghc-options:
-        -Wall
-  default-language: Haskell2010
-
-test-suite hspec-tests
-  type: exitcode-stdio-1.0
-  main-is: hspec-tests.hs
-  other-modules:
-      Network.Mail.Assumpta.ByteStringSpec
-  hs-source-dirs:
-      test-hspec
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      QuickCheck
-    , assumpta
-    , base >=4.0 && <5
-    , assumpta-core
-    , bytestring
-    , hspec
-    , network < 3
-    , quickcheck-io
   if flag(warnmore)
     if impl(ghc >= 8.0.1)
       ghc-options:
