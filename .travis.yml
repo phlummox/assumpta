@@ -23,15 +23,20 @@ matrix:
     compiler: ": #GHC 8.0.1"
     addons: 
       {apt: {packages: [cabal-install-2.2,ghc-8.0.1,happy-1.19.5,alex-3.1.7], sources: [hvr-ghc]}}
-  # Stack lts-7
-  - env: BUILD=stack STACK_RESOLVER="lts-7"
+
+  # Stack lts-6
+  - env: BUILD=stack STACK_RESOLVER="lts-6"
     compiler: ": #stack"
     addons: 
       # ghc not used, but handy to ensure we have all deps
       {apt: {packages: [libgmp-dev,ghc-8.0.1], sources: [hvr-ghc]}}
-#TO ADD: 
-# - lts-6.35
-# - lts-14.21
+
+  # Stack lts-14
+  - env: BUILD=stack STACK_RESOLVER="lts-14"
+    compiler: ": #stack"
+    addons: 
+      # ghc not used, but handy to ensure we have all deps
+      {apt: {packages: [libgmp-dev,ghc-8.0.1], sources: [hvr-ghc]}}
 
 before_install:
   - |
