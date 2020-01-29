@@ -96,7 +96,7 @@ smtpTestCases :: [SpecWith ()]
 smtpTestCases = [
     mkSmtpTestCase
             "helo then quit"
-            -- cmds 
+            -- cmds
             (do expectGreeting
                 helo "myhost"
                 quit )
@@ -111,13 +111,36 @@ smtpTestCases = [
 
   , mkSmtpTestCase
             "improper greeting"
-            -- cmds 
+            -- cmds
             expectGreeting
             -- responses
             [ "250 OK" -- bad greeting
             ]
             -- expect
             (Left (UnexpectedResponse "220" [ReplyLine 250 "OK"]), "")
+
+  , mkSmtpTestCase
+            "using sendRawMail"
+            -- cmds
+            (do expectGreeting
+                sendRawMail "somesender" ["somerecipt"] "some body text"
+                quit )
+            -- responses
+            [ "220 hi there"
+            , "250 OK"
+            , "250 OK"
+            , "354 End data with <CR><LF>.<CR><LF>"
+            , "250 OK"
+            , "221 Bye"
+            ]
+            -- expect
+            (Right (), BSC.intercalate crlf [
+                            "MAIL FROM:<somesender>"
+                          , "RCPT TO:<somerecipt>"
+                          , "DATA"
+                          , "some body text"
+                          , "."
+                          , "QUIT\r\n"])
 
   ]
 
@@ -135,7 +158,7 @@ data_Spec =
                 , "250 OK"
                 ]
           res <- runSmtpWithServer cmds serverReplies
-          return $ propertyIO $ 
+          return $ propertyIO $
               res `shouldBe` (Right (), "DATA\r\n" <> someData' <> "\r\n")
 
 
