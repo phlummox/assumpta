@@ -25,3 +25,5 @@ cabal.project.local
 cabal.project.local~
 .HTF/
 .ghc.environment.*
+examples/simple-client-session-bs
+examples/simple-client-session-text
