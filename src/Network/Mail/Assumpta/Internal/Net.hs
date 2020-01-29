@@ -47,8 +47,8 @@ instance Connection Handle where
                    return $ Handle conn ctx
   close       = liftIO . NC.connectionClose . hConn
 
-  send h      = liftIO . NC.connectionPut (hConn h)
-  recv        = liftIO . (`NC.connectionGet` 2048) . hConn
+  send h bs   = liftIO $    NC.connectionPut (hConn h) bs
+  recv h      = liftIO $    NC.connectionGet (hConn h) 2048
 
   upgrade h   = let conn = hConn h
                     ctx  = hContext h

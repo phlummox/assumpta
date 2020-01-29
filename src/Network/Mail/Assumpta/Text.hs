@@ -10,6 +10,69 @@ satisfies the requirements of the relevant RFCs -- see the note in
 about "permissible characters". In general, unless you are using
 an SMTP extension, your text must consist of 7-bit clean ASCII.
 
+== Example code
+
+Short example (which will work if you have an SMTP server
+running on local port 2025):
+(see the
+<https://hackage.haskell.org/package/assumpta/src/examples/ examples>
+directory for a copy of the code):
+
+> {-# LANGUAGE OverloadedStrings #-}
+> 
+> -- Program that runs a short SMTP session
+> -- with a server running on local port 2025.
+> 
+> module Main where
+> 
+> import           Data.Monoid
+> import qualified Data.Text as T
+> import Network.BSD (getHostName) -- requires 'network' package
+> import Network.Mail.Assumpta.Text
+> 
+> sampleMesg :: T.Text
+> sampleMesg = T.intercalate crlf [
+>     "Date: Tue, 21 Jan 2020 02:28:37 +0800"
+>   , "To: neddie.seagoon@gmail.com"
+>   , "From: jim.moriarty@gmail.com"
+>   , "Subject: test Tue, 21 Jan 2020 02:28:37 +0800"
+>   , ""
+>   , "Sapristi nyuckoes!"
+>   ]
+> 
+> -- The sender and recipient supplied to the
+> -- SMTP server are what is used to route the
+> -- message; any 'To:' and 'From:' fields
+> -- in the message are completely ignored for this
+> -- purpose.
+> sender, recipient :: T.Text
+> sender = "somesender@mycorp.com"
+> recipient = "somerecipient@mozilla.org"
+> 
+> main :: IO ()
+> main = do
+>   let  
+>       port = 2025
+>   hostname <- getHostName
+>   print =<< runSmtp "localhost" port (do
+>           expectGreeting
+>           ehlo $ T.pack hostname
+>           -- Properly, we should escape periods at the start of a
+>           -- line. But we know there aren't any
+>           sendRawMail sender [recipient] sampleMesg
+>           quit)
+
+== Alternatives to "connection"
+
+If you want to use other network libraries besides
+<https://hackage.haskell.org/package/connection connection>,
+it should be pretty straightforward to adapt the code here.
+
+If you want to use stream-like IO, one possibility is
+the <https://hackage.haskell.org/package/conduit-connection  conduit-connection> package,
+which provides Conduit-based sources and sinks on top of "Network.Connection".
+
+
 -}
 
 module Network.Mail.Assumpta.Text

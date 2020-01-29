@@ -27,7 +27,7 @@ an SMTP extension, your bytestrings must be 7-bit clean ASCII.
 Short example (which will work if you have an SMTP server
 running on local port 2025):
 (see the
-<https://hackage.haskell.org/package/assumpta/src/examples/simple-client-session.hs examples>
+<https://hackage.haskell.org/package/assumpta/src/examples/ examples>
 directory for a copy of the code):
 
 > {-# LANGUAGE OverloadedStrings #-}
@@ -38,13 +38,14 @@ directory for a copy of the code):
 > module Main where
 > 
 > import           Data.Monoid
+> import qualified Data.ByteString.Char8 as BS
 > import qualified Data.Text as T
 > import qualified Data.Text.Encoding as TE
-> import Network.BSD (getHostName)
+> import Network.BSD (getHostName) -- requires 'network' package
 > import Network.Mail.Assumpta.ByteString as M
 > 
-> sampleMesg :: String
-> sampleMesg = unlines [
+> sampleMesg :: BS.ByteString
+> sampleMesg = BS.intercalate crlf [
 >     "Date: Tue, 21 Jan 2020 02:28:37 +0800"
 >   , "To: neddie.seagoon@gmail.com"
 >   , "From: jim.moriarty@gmail.com"
@@ -58,6 +59,7 @@ directory for a copy of the code):
 > -- message; any 'To:' and 'From:' fields
 > -- in the message are completely ignored for this
 > -- purpose.
+> sender, recipient :: BS.ByteString
 > sender = "somesender@mycorp.com"
 > recipient = "somerecipient@mozilla.org"
 > 
@@ -65,18 +67,14 @@ directory for a copy of the code):
 > main = do
 >   let toBinary = TE.encodeUtf8 . T.pack 
 >       port = 2025
->       -- If we call the data_ function ourselves,
->       -- we must end the messager with a <CRLF> '.' <CRLF>
->       -- sequence.
->       myMesg' = toBinary sampleMesg <> crlf <> "." <> crlf
 >   hostname <- getHostName
 >   print =<< runSmtp "localhost" port (do
->     expectGreeting
->     ehlo $ toBinary hostname
->     mailFrom sender
->     rcptTo recipient
->     data_ myMesg'
->     quit)
+>           expectGreeting
+>           ehlo $ toBinary hostname
+>           -- Properly, we should escape periods at the start of a
+>           -- line. But we know there aren't any
+>           sendRawMail sender [recipient] sampleMesg
+>           quit)
 
 == Alternatives to "connection"
 
